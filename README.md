@@ -52,8 +52,8 @@ fpdf
 
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/<your-repo-url>.git
-   cd <your-repo-folder>
+   git clone https://github.com/Anilkumar322/AI-Predictive-Methods-for-Credit-underwriting.git
+   cd <streamlit_app.py>
    ```
 
 2. **Install Dependencies**:
@@ -147,5 +147,5 @@ This project is licensed under the MIT License. See the `LICENSE` file for detai
 
 ## Feedback
 
-For any issues or suggestions, please open an issue on the [GitHub repository](https://github.com/<AI-Predictive-Methods-for-Credit-underwriting>).
+For any issues or suggestions, please open an issue on the [GitHub repository](<https://github.com/Anilkumar322/AI-Predictive-Methods-for-Credit-underwriting.git>).
 
