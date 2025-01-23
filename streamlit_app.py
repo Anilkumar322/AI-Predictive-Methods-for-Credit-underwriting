@@ -3,7 +3,8 @@ import pandas as pd
 import joblib
 
 # Load the trained model
-model = joblib.load('ensemble_model.pkl')
+model = joblib.load('models/ensemble_model.pkl')
+
 
 st.title("Loan Approval Prediction")
 
