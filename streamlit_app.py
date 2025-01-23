@@ -1,10 +1,19 @@
 import streamlit as st
 import pandas as pd
 import joblib
+import os
+
+# Get the current directory of the script
+current_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Load the trained model
-model = joblib.load('models/ensemble_model.pkl')
-
+model_path = os.path.join(current_dir, 'ensemble_model.pkl')
+try:
+    model = joblib.load(model_path)
+    st.success("Model loaded successfully.")
+except FileNotFoundError:
+    st.error(f"Model file not found: {model_path}")
+    st.stop()  # Stop execution if the model file is missing
 
 st.title("Loan Approval Prediction")
 
