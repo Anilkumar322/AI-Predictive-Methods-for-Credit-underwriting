@@ -28,7 +28,7 @@ gender = st.selectbox("Gender", ["Men", "Women"])
 marital_status = st.selectbox("Marital Status", ["Single", "Married"])
 employee_status = st.selectbox("Employment Status", ["employed", "self employed", "unemployed", "student"])
 residence_type = st.selectbox("Residence Type", ["MORTGAGE", "OWN", "RENT"])
-loan_purpose = st.selectbox("Loan Purpose", ["Vehicle", "Personal", "Home Renovation", "Education", "Other"])
+loan_purpose = st.selectbox("Loan Purpose", ["Vehicle", "Personal", "Home Renovation", "Education","Medical", "Other"])
 
 # Default values for missing features
 default_values = {
