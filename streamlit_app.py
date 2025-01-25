@@ -57,7 +57,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Load model
+# Load the trained model
 model_path = 'best_features_model.pkl'
 try:
     model = joblib.load(model_path)
@@ -160,28 +160,27 @@ elif step == "Final Decision":
     # Generate PDF Report
     pdf = FPDF()
     pdf.add_page()
-    pdf.set_font('Arial', size=12)
+    pdf.add_font('DejaVu', '', 'DejaVuSans.ttf', uni=True)  # Register Unicode font
+    pdf.set_font('DejaVu', '', 12)
+
     pdf.cell(200, 10, txt="Loan Approval Prediction Report", ln=True, align="C")
     pdf.ln(10)
 
-    # Add Personal Information
+    # Personal Information
     pdf.cell(200, 10, txt="Personal Information:", ln=True)
     pdf.cell(200, 10, txt=f"Full Name: {loan_details.get('full_name', 'N/A')}", ln=True)
     pdf.cell(200, 10, txt=f"Email: {loan_details.get('email', 'N/A')}", ln=True)
-    pdf.cell(200, 10, txt=f"Phone Number: {loan_details.get('phone', 'N/A')}", ln=True)
+    pdf.cell(200, 10, txt=f"Phone: {loan_details.get('phone', 'N/A')}", ln=True)
     pdf.ln(10)
 
-    # Add Loan Details and EMI
+    # Loan Details
     pdf.cell(200, 10, txt="Loan Details:", ln=True)
     pdf.cell(200, 10, txt=f"CIBIL Score: {loan_details.get('cibil_score', 'N/A')}", ln=True)
-    pdf.cell(200, 10, txt=f"Annual Income: INR {loan_details.get('income_annum', 'N/A')}", ln=True)
-    pdf.cell(200, 10, txt=f"Loan Amount: INR {loan_details.get('loan_amount', 'N/A')}", ln=True)
+    pdf.cell(200, 10, txt=f"Loan Amount: ₹{loan_details.get('loan_amount', 'N/A')}", ln=True)
     pdf.cell(200, 10, txt=f"Loan Term: {loan_details.get('loan_term', 'N/A')} months", ln=True)
     emi_value = loan_details.get('emi', 'N/A')
-    if emi_value != 'N/A':
-        pdf.cell(200, 10, txt=f"Estimated EMI: ₹{emi_value:,.2f}", ln=True)
-    else:
-        pdf.cell(200, 10, txt="Estimated EMI: N/A", ln=True)
+    pdf.cell(200, 10, txt=f"Estimated EMI: ₹{emi_value:,.2f}" if emi_value != 'N/A' else "Estimated EMI: N/A", ln=True)
+    pdf.ln(10)
 
     # Prediction Results
     pdf.cell(200, 10, txt="Prediction Results:", ln=True)
