@@ -195,8 +195,8 @@ if st.button("Predict Loan Status"):
             pdf.cell(200, 10, txt=detail, ln=True)
 
         buffer = BytesIO()
-        pdf.output(buffer)
-        buffer.seek(0)
+        pdf.output(buffer, 'S')  # Save PDF content as a string to BytesIO
+        buffer.seek(0)  # Reset the buffer pointer to the beginning
 
         st.download_button(
             label="Download Report as PDF",
