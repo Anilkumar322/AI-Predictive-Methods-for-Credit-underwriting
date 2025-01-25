@@ -44,9 +44,6 @@ st.markdown(
             box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
             margin-top: 20px;
         }
-        .progress-bar-container {
-            margin: 20px 0;
-        }
         footer {
             text-align: center;
             margin-top: 50px;
@@ -104,6 +101,7 @@ if step == "Personal Information":
     st.text_input("Full Name")
     st.text_input("Email Address")
     st.text_input("Phone Number")
+
 elif step == "Loan Details":
     st.markdown("#### Step 2: Loan Details")
     cibil_score = st.slider("CIBIL Score (300-900):", min_value=300, max_value=900, step=1, value=750)
@@ -200,14 +198,41 @@ elif step == "Loan Details":
 # Visualization: Credit Score vs Approval Probability
 st.markdown("### Credit Score vs Approval Likelihood")
 credit_scores = np.arange(300, 901, 50)
-approval_probs = [model.predict_proba([[score, 500000, 5]])[0][0] for score in credit_scores]
+
+# Prepare approval probabilities
+approval_probs = []
+for score in credit_scores:
+    temp_data = pd.DataFrame({
+        "cibil_score": [score],
+        "income_annum": [500000],  # Example constant income
+        "loan_amount": [200000],  # Example constant loan amount
+        "loan_term": [24],
+        "loan_percent_income": [20],
+        "active_loans": [1],
+        "gender": [0],
+        "marital_status": [1],
+        "employee_status_self_employed": [0],
+        "employee_status_unemployed": [0],
+        "employee_status_student": [0],
+        "residence_type_OWN": [1],
+        "residence_type_RENT": [0],
+        "loan_purpose_Personal": [0],
+        "loan_purpose_Home_Renovation": [0],
+        "loan_purpose_Education": [0],
+        "loan_purpose_Vehicle": [1],
+    })
+
+    temp_data = temp_data.reindex(columns=model.feature_names_in_, fill_value=0)
+    prob = model.predict_proba(temp_data)[0][0]
+    approval_probs.append(prob)
 
 plt.figure(figsize=(8, 4))
-plt.plot(credit_scores, approval_probs, marker='o')
+plt.plot(credit_scores, approval_probs, marker='o', color="blue", label="Approval Probability")
 plt.title("Credit Score vs Approval Likelihood")
 plt.xlabel("CIBIL Score")
 plt.ylabel("Approval Probability")
 plt.grid()
+plt.legend()
 st.pyplot(plt)
 
 # Expandable FAQ Section
