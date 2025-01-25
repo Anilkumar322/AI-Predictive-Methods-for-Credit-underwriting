@@ -6,4 +6,3 @@ seaborn
 joblib
 fpdf2
 fpdf
-BytesIO
