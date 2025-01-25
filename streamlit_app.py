@@ -128,6 +128,7 @@ elif step == "Loan Details":
         st.session_state["loan_details"]["emi"] = emi
         st.write(f"**Estimated EMI:** ₹{emi:,.2f}")
     else:
+        st.session_state["loan_details"]["emi"] = None
         st.write("Please provide valid loan amount and term.")
 
 # Step 3: Upload Documents
@@ -195,8 +196,11 @@ elif step == "Final Decision":
         pdf.cell(200, 10, txt=f"CIBIL Score: {loan_details.get('cibil_score', 'N/A')}", ln=True)
         pdf.cell(200, 10, txt=f"Loan Amount: ₹{loan_details.get('loan_amount', 'N/A')}", ln=True)
         pdf.cell(200, 10, txt=f"Loan Term: {loan_details.get('loan_term', 'N/A')} months", ln=True)
-        emi_value = loan_details.get("emi", "N/A")
-        pdf.cell(200, 10, txt=f"Estimated EMI: ₹{emi_value:,.2f}" if emi_value != "N/A" else "Estimated EMI: N/A", ln=True)
+        emi_value = loan_details.get("emi", None)
+        if emi_value is not None:
+            pdf.cell(200, 10, txt=f"Estimated EMI: ₹{emi_value:,.2f}", ln=True)
+        else:
+            pdf.cell(200, 10, txt="Estimated EMI: Not Calculated", ln=True)
         pdf.ln(10)
 
         # Prediction Results
