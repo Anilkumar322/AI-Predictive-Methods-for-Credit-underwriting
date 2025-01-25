@@ -98,11 +98,25 @@ elif step == "Loan Details":
     st.session_state["loan_details"]["residence_type"] = st.selectbox("Residence Type:", ["MORTGAGE", "OWN", "RENT"], index=1)
     st.session_state["loan_details"]["loan_purpose"] = st.selectbox("Loan Purpose:", ["Vehicle", "Personal", "Home Renovation", "Education", "Medical", "Other"], index=0)
 
+    # EMI Calculator
+    st.markdown("### Loan EMI Calculator")
+    loan_amount = st.session_state["loan_details"]["loan_amount"]
+    loan_term_years = st.session_state["loan_details"]["loan_term"] / 12
+    interest_rate = st.number_input("Interest Rate (%):", min_value=0.1, max_value=15.0, step=0.1, value=7.5)
+    monthly_rate = interest_rate / (12 * 100)
+    tenure_months = loan_term_years * 12
+    if loan_amount > 0 and tenure_months > 0:
+        emi = (loan_amount * monthly_rate * (1 + monthly_rate) ** tenure_months) / ((1 + monthly_rate) ** tenure_months - 1)
+        st.session_state["loan_details"]["emi"] = emi
+        st.write(f"**Estimated EMI:** ₹{emi:,.2f}")
+    else:
+        st.write("Please provide valid loan amount and term.")
+
 # Step 3: Upload Documents
 elif step == "Upload Documents":
     st.markdown("### Step 3: Upload Documents")
-    st.file_uploader("Upload ID Proof")
-    st.file_uploader("Upload Address Proof")
+    st.session_state["loan_details"]["id_proof"] = st.file_uploader("Upload ID Proof")
+    st.session_state["loan_details"]["address_proof"] = st.file_uploader("Upload Address Proof")
 
 # Step 4: Final Decision
 elif step == "Final Decision":
@@ -149,11 +163,33 @@ elif step == "Final Decision":
     pdf.set_font('Arial', size=12)
     pdf.cell(200, 10, txt="Loan Approval Prediction Report", ln=True, align="C")
     pdf.ln(10)
+
+    # Add Personal Information
+    pdf.cell(200, 10, txt="Personal Information:", ln=True)
+    pdf.cell(200, 10, txt=f"Full Name: {loan_details.get('full_name', 'N/A')}", ln=True)
+    pdf.cell(200, 10, txt=f"Email: {loan_details.get('email', 'N/A')}", ln=True)
+    pdf.cell(200, 10, txt=f"Phone Number: {loan_details.get('phone', 'N/A')}", ln=True)
+    pdf.ln(10)
+
+    # Add Loan Details and EMI
+    pdf.cell(200, 10, txt="Loan Details:", ln=True)
+    pdf.cell(200, 10, txt=f"CIBIL Score: {loan_details.get('cibil_score', 'N/A')}", ln=True)
+    pdf.cell(200, 10, txt=f"Annual Income: INR {loan_details.get('income_annum', 'N/A')}", ln=True)
+    pdf.cell(200, 10, txt=f"Loan Amount: INR {loan_details.get('loan_amount', 'N/A')}", ln=True)
+    pdf.cell(200, 10, txt=f"Loan Term: {loan_details.get('loan_term', 'N/A')} months", ln=True)
+    emi_value = loan_details.get('emi', 'N/A')
+    if emi_value != 'N/A':
+        pdf.cell(200, 10, txt=f"Estimated EMI: ₹{emi_value:,.2f}", ln=True)
+    else:
+        pdf.cell(200, 10, txt="Estimated EMI: N/A", ln=True)
+
+    # Prediction Results
+    pdf.cell(200, 10, txt="Prediction Results:", ln=True)
     pdf.cell(200, 10, txt=f"Prediction: {'Approved' if prediction[0] == 0 else 'Rejected'}", ln=True)
     pdf.cell(200, 10, txt=f"Approval Probability: {prediction_proba[0][0]:.2f}", ln=True)
     pdf.cell(200, 10, txt=f"Rejection Probability: {prediction_proba[0][1]:.2f}", ln=True)
-    pdf.ln(10)
 
+    # Save PDF to buffer
     buffer = BytesIO()
     pdf.output(buffer, 'S')
     buffer.seek(0)
