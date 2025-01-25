@@ -7,7 +7,7 @@ from fpdf import FPDF
 
 # Set page configuration
 st.set_page_config(
-    page_title="AI Predictive Methods for Credit underwriting",
+    page_title="AI Predictive Methods for Credit Underwriting",
     page_icon="💰",
     layout="wide"
 )
@@ -59,18 +59,6 @@ st.markdown(
             color: red;
             border: 2px solid red;
         }
-        .stButton>button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        .stButton>button:hover {
-            background-color: #45a049;
-        }
         footer {
             text-align: center;
             margin-top: 50px;
@@ -85,7 +73,7 @@ st.markdown(
 st.markdown(
     """
     <div class="header-container">
-        <h1>AI Predictive Methods for Credit underwriting</h1>
+        <h1>AI Predictive Methods for Credit Underwriting</h1>
         <p>Revolutionizing credit underwriting with AI-driven predictive analytics for smarter, faster decisions!</p>
     </div>
     """,
@@ -156,7 +144,6 @@ if st.button("Predict Loan Status"):
         prediction_proba = model.predict_proba(input_data)
 
         if prediction[0] == 1:
-            status = "Rejected"
             st.markdown(
                 """
                 <div class="result-container result-rejected">
@@ -167,7 +154,6 @@ if st.button("Predict Loan Status"):
             )
             st.error(f"Rejection Probability: {prediction_proba[0][1]:.2f}")
         else:
-            status = "Approved"
             st.markdown(
                 """
                 <div class="result-container result-approved">
@@ -177,50 +163,47 @@ if st.button("Predict Loan Status"):
                 unsafe_allow_html=True
             )
             st.success(f"Approval Probability: {prediction_proba[0][0]:.2f}")
-# Generate PDF report
-pdf = FPDF()
-pdf.add_page()
-pdf.set_font('Arial', size=12)
 
-# Add content to the PDF
-pdf.cell(200, 10, txt="Loan Approval Prediction Report", ln=True, align="C")
-pdf.ln(10)
-pdf.cell(200, 10, txt=f"Prediction: {'Approved' if prediction[0] == 0 else 'Rejected'}", ln=True)
-pdf.cell(200, 10, txt=f"Approval Probability: {prediction_proba[0][0]:.2f}", ln=True)
-pdf.cell(200, 10, txt=f"Rejection Probability: {prediction_proba[0][1]:.2f}", ln=True)
+        # Generate PDF report
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font('Arial', size=12)
 
-pdf.ln(10)
-pdf.cell(200, 10, txt="Details:", ln=True)
-pdf.ln(5)
+        pdf.cell(200, 10, txt="Loan Approval Prediction Report", ln=True, align="C")
+        pdf.ln(10)
+        pdf.cell(200, 10, txt=f"Prediction: {'Approved' if prediction[0] == 0 else 'Rejected'}", ln=True)
+        pdf.cell(200, 10, txt=f"Approval Probability: {prediction_proba[0][0]:.2f}", ln=True)
+        pdf.cell(200, 10, txt=f"Rejection Probability: {prediction_proba[0][1]:.2f}", ln=True)
+        pdf.ln(10)
+        pdf.cell(200, 10, txt="Details:", ln=True)
+        pdf.ln(5)
 
-details = [
-    f"CIBIL Score: {cibil_score}",
-    f"Annual Income: INR {income_annum}",
-    f"Loan Amount: INR {loan_amount}",
-    f"Loan Term: {loan_term} months",
-    f"Loan Percent of Income: {loan_percent_income}%",
-    f"Number of Active Loans: {active_loans}",
-    f"Gender: {gender}",
-    f"Marital Status: {marital_status}",
-    f"Employment Status: {employee_status}",
-    f"Residence Type: {residence_type}",
-    f"Loan Purpose: {loan_purpose}",
-]
-for detail in details:
-    pdf.cell(200, 10, txt=detail, ln=True)
+        details = [
+            f"CIBIL Score: {cibil_score}",
+            f"Annual Income: INR {income_annum}",
+            f"Loan Amount: INR {loan_amount}",
+            f"Loan Term: {loan_term} months",
+            f"Loan Percent of Income: {loan_percent_income}%",
+            f"Number of Active Loans: {active_loans}",
+            f"Gender: {gender}",
+            f"Marital Status: {marital_status}",
+            f"Employment Status: {employee_status}",
+            f"Residence Type: {residence_type}",
+            f"Loan Purpose: {loan_purpose}",
+        ]
+        for detail in details:
+            pdf.cell(200, 10, txt=detail, ln=True)
 
-# Write the PDF to a BytesIO object
-buffer = BytesIO()
-pdf.output(buffer)  # This writes the PDF data to the buffer
-buffer.seek(0)  # Reset the buffer's pointer to the beginning
+        buffer = BytesIO()
+        pdf.output(buffer)
+        buffer.seek(0)
 
-# Allow the user to download the PDF
-st.download_button(
-    label="Download Report as PDF",
-    data=buffer,
-    file_name="loan_prediction_report.pdf",
-    mime="application/pdf"
-)
+        st.download_button(
+            label="Download Report as PDF",
+            data=buffer,
+            file_name="loan_prediction_report.pdf",
+            mime="application/pdf"
+        )
     except Exception as e:
         st.error(f"Prediction failed: {e}")
 
@@ -228,7 +211,7 @@ st.download_button(
 st.markdown(
     """
     <footer>
-        <p>© 2025 AI Predictive Methods for Credit underwriting. All rights reserved.</p>
+        <p>© 2025 AI Predictive Methods for Credit Underwriting. All rights reserved.</p>
     </footer>
     """,
     unsafe_allow_html=True
