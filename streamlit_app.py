@@ -66,7 +66,7 @@ except FileNotFoundError:
     st.error(f"Model file not found: {model_path}")
     st.stop()
 
-# Initialize session state with default values
+# Initialize session state
 if "loan_details" not in st.session_state:
     st.session_state["loan_details"] = {
         "full_name": "",
@@ -180,7 +180,9 @@ elif step == "Final Decision":
         # Generate PDF Report
         pdf = FPDF()
         pdf.add_page()
-        pdf.set_font("Arial", size=12)
+        pdf.add_font('FreeSerif', '', 'FreeSerif.ttf', uni=True)
+        pdf.set_font("FreeSerif", size=12)
+
         pdf.cell(200, 10, txt="Loan Approval Prediction Report", ln=True, align="C")
         pdf.ln(10)
 
