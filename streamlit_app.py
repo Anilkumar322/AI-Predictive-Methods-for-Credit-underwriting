@@ -1,67 +1,56 @@
 import streamlit as st
 import pandas as pd
 import joblib
-import matplotlib.pyplot as plt
+import numpy as np
 from io import BytesIO
 from fpdf import FPDF
+import matplotlib.pyplot as plt
 
 # Set page configuration
 st.set_page_config(
-    page_title="AI Predictive Methods for Credit Underwriting",
-    page_icon="💰",
+    page_title="AI Loan Approval System",
+    page_icon="💸",
     layout="wide"
 )
 
-# Custom CSS for enhanced styling
+# Custom CSS for styling
 st.markdown(
     """
     <style>
         body {
-            background-color: #f4f7fa;
+            background: linear-gradient(to right, #ffffff, #e6f7ff);
             font-family: 'Arial', sans-serif;
         }
         .header-container {
-            background: linear-gradient(to right, #4CAF50, #45a049);
+            background: linear-gradient(to right, #4CAF50, #5ecf5e);
             color: white;
-            padding: 20px;
+            padding: 30px;
             border-radius: 10px;
-            box-shadow: 2px 2px 10px gray;
             text-align: center;
             margin-bottom: 20px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
         }
         .header-container h1 {
-            font-size: 36px;
+            font-size: 40px;
         }
         .header-container p {
-            font-size: 18px;
+            font-size: 20px;
+            margin-top: 5px;
         }
-        .card {
+        .loan-section {
+            padding: 20px;
             background-color: white;
-            padding: 20px;
             border-radius: 10px;
-            box-shadow: 2px 2px 10px lightgray;
-            margin-bottom: 20px;
-        }
-        .result-container {
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
             margin-top: 20px;
-            font-weight: bold;
         }
-        .result-approved {
-            background-color: #e7f9e7;
-            color: green;
-            border: 2px solid green;
-        }
-        .result-rejected {
-            background-color: #fde9e9;
-            color: red;
-            border: 2px solid red;
+        .progress-bar-container {
+            margin: 20px 0;
         }
         footer {
             text-align: center;
             margin-top: 50px;
+            font-size: 14px;
             color: #666;
         }
     </style>
@@ -73,37 +62,54 @@ st.markdown(
 st.markdown(
     """
     <div class="header-container">
-        <h1>AI Predictive Methods for Credit Underwriting</h1>
-        <p>Revolutionizing credit underwriting with AI-driven predictive analytics for smarter, faster decisions!</p>
+        <h1>AI Loan Application System</h1>
+        <p>Smart, Reliable, and Transparent Loan Processing</p>
     </div>
     """,
     unsafe_allow_html=True
 )
 
-# Load the trained model
-model_path = 'best_features_model.pkl'  # Path to the trained model
+# Load model
+model_path = 'best_features_model.pkl'
 try:
     model = joblib.load(model_path)
-    st.success("Model loaded successfully.")
+    st.success("Model loaded successfully!")
 except FileNotFoundError:
     st.error(f"Model file not found: {model_path}")
     st.stop()
 
-# Sidebar for input fields
+# Sidebar for Loan EMI Calculator
 with st.sidebar:
-    st.markdown(
-        """
-        <div class="card">
-            <h3>Input Loan Details</h3>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    st.markdown("### Loan EMI Calculator")
+    loan_amount_cal = st.number_input("Loan Amount (INR):", min_value=10000, step=1000, value=500000)
+    interest_rate = st.number_input("Interest Rate (%):", min_value=1.0, step=0.1, value=7.0)
+    tenure_years = st.number_input("Loan Tenure (Years):", min_value=1, step=1, value=5)
 
+    # EMI Calculation
+    monthly_rate = interest_rate / (12 * 100)
+    tenure_months = tenure_years * 12
+    emi = (loan_amount_cal * monthly_rate * (1 + monthly_rate) ** tenure_months) / ((1 + monthly_rate) ** tenure_months - 1)
+
+    st.write(f"**Estimated EMI:** ₹{emi:,.2f}")
+
+# Step-by-Step Loan Workflow
+st.markdown("### Loan Application Steps")
+step = st.select_slider(
+    "Navigate through the steps:",
+    options=["Personal Information", "Loan Details", "Upload Documents", "Final Decision"]
+)
+
+if step == "Personal Information":
+    st.markdown("#### Step 1: Personal Information")
+    st.text_input("Full Name")
+    st.text_input("Email Address")
+    st.text_input("Phone Number")
+elif step == "Loan Details":
+    st.markdown("#### Step 2: Loan Details")
     cibil_score = st.slider("CIBIL Score (300-900):", min_value=300, max_value=900, step=1, value=750)
     income_annum = st.number_input("Annual Income (INR):", min_value=0, step=10000, value=5000000)
     loan_amount = st.number_input("Loan Amount (INR):", min_value=0, step=10000, value=2000000)
-    loan_term = st.number_input("Loan Term (Months):", min_value=0, step=1, value=24)
+    loan_term = st.number_input("Loan Term (Months):", min_value=1, step=1, value=24)
     loan_percent_income = st.number_input("Loan Percent of Income (%):", min_value=0.0, step=0.1, value=20.0)
     active_loans = st.number_input("Number of Active Loans:", min_value=0, step=1, value=1)
 
@@ -113,105 +119,111 @@ with st.sidebar:
     residence_type = st.selectbox("Residence Type:", ["MORTGAGE", "OWN", "RENT"], index=1)
     loan_purpose = st.selectbox("Loan Purpose:", ["Vehicle", "Personal", "Home Renovation", "Education", "Medical", "Other"], index=0)
 
-# Prepare the input data
-input_data = pd.DataFrame({
-    "cibil_score": [cibil_score],
-    "income_annum": [income_annum],
-    "loan_amount": [loan_amount],
-    "loan_term": [loan_term],
-    "loan_percent_income": [loan_percent_income],
-    "active_loans": [active_loans],
-    "gender": [1 if gender == "Women" else 0],
-    "marital_status": [1 if marital_status == "Married" else 0],
-    "employee_status_self_employed": [1 if employee_status == "self employed" else 0],
-    "employee_status_unemployed": [1 if employee_status == "unemployed" else 0],
-    "employee_status_student": [1 if employee_status == "student" else 0],
-    "residence_type_OWN": [1 if residence_type == "OWN" else 0],
-    "residence_type_RENT": [1 if residence_type == "RENT" else 0],
-    "loan_purpose_Personal": [1 if loan_purpose == "Personal" else 0],
-    "loan_purpose_Home_Renovation": [1 if loan_purpose == "Home Renovation" else 0],
-    "loan_purpose_Education": [1 if loan_purpose == "Education" else 0],
-    "loan_purpose_Vehicle": [1 if loan_purpose == "Vehicle" else 0],
-})
+    # Prepare input data for prediction
+    input_data = pd.DataFrame({
+        "cibil_score": [cibil_score],
+        "income_annum": [income_annum],
+        "loan_amount": [loan_amount],
+        "loan_term": [loan_term],
+        "loan_percent_income": [loan_percent_income],
+        "active_loans": [active_loans],
+        "gender": [1 if gender == "Women" else 0],
+        "marital_status": [1 if marital_status == "Married" else 0],
+        "employee_status_self_employed": [1 if employee_status == "self employed" else 0],
+        "employee_status_unemployed": [1 if employee_status == "unemployed" else 0],
+        "employee_status_student": [1 if employee_status == "student" else 0],
+        "residence_type_OWN": [1 if residence_type == "OWN" else 0],
+        "residence_type_RENT": [1 if residence_type == "RENT" else 0],
+        "loan_purpose_Personal": [1 if loan_purpose == "Personal" else 0],
+        "loan_purpose_Home_Renovation": [1 if loan_purpose == "Home Renovation" else 0],
+        "loan_purpose_Education": [1 if loan_purpose == "Education" else 0],
+        "loan_purpose_Vehicle": [1 if loan_purpose == "Vehicle" else 0],
+    })
 
-# Align input data with model features
-input_data = input_data.reindex(columns=model.feature_names_in_, fill_value=0)
+    input_data = input_data.reindex(columns=model.feature_names_in_, fill_value=0)
 
-# Prediction button
-if st.button("Predict Loan Status"):
-    try:
-        prediction = model.predict(input_data)
-        prediction_proba = model.predict_proba(input_data)
+    # Loan Prediction
+    if st.button("Predict Loan Status"):
+        try:
+            prediction = model.predict(input_data)
+            prediction_proba = model.predict_proba(input_data)
 
-        if prediction[0] == 1:
-            st.markdown(
-                """
-                <div class="result-container result-rejected">
-                    <h1>Loan Rejected ❌</h1>
-                </div>
-                """,
-                unsafe_allow_html=True
+            if prediction[0] == 1:
+                st.markdown("#### Loan Rejected ❌")
+                st.error(f"Rejection Probability: {prediction_proba[0][1]:.2f}")
+            else:
+                st.markdown("#### Loan Approved ✅")
+                st.success(f"Approval Probability: {prediction_proba[0][0]:.2f}")
+
+            # Generate PDF report
+            pdf = FPDF()
+            pdf.add_page()
+            pdf.set_font('Arial', size=12)
+
+            pdf.cell(200, 10, txt="Loan Approval Prediction Report", ln=True, align="C")
+            pdf.ln(10)
+            pdf.cell(200, 10, txt=f"Prediction: {'Approved' if prediction[0] == 0 else 'Rejected'}", ln=True)
+            pdf.cell(200, 10, txt=f"Approval Probability: {prediction_proba[0][0]:.2f}", ln=True)
+            pdf.cell(200, 10, txt=f"Rejection Probability: {prediction_proba[0][1]:.2f}", ln=True)
+            pdf.ln(10)
+
+            details = [
+                f"CIBIL Score: {cibil_score}",
+                f"Annual Income: INR {income_annum}",
+                f"Loan Amount: INR {loan_amount}",
+                f"Loan Term: {loan_term} months",
+                f"Loan Percent of Income: {loan_percent_income}%",
+                f"Number of Active Loans: {active_loans}",
+                f"Gender: {gender}",
+                f"Marital Status: {marital_status}",
+                f"Employment Status: {employee_status}",
+                f"Residence Type: {residence_type}",
+                f"Loan Purpose: {loan_purpose}",
+            ]
+            for detail in details:
+                pdf.cell(200, 10, txt=detail, ln=True)
+
+            buffer = BytesIO()
+            pdf.output(buffer, 'S')
+            buffer.seek(0)
+
+            st.download_button(
+                label="Download Report as PDF",
+                data=buffer,
+                file_name="loan_prediction_report.pdf",
+                mime="application/pdf"
             )
-            st.error(f"Rejection Probability: {prediction_proba[0][1]:.2f}")
-        else:
-            st.markdown(
-                """
-                <div class="result-container result-approved">
-                    <h1>Loan Approved ✅</h1>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-            st.success(f"Approval Probability: {prediction_proba[0][0]:.2f}")
 
-        # Generate PDF report
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.set_font('Arial', size=12)
+        except Exception as e:
+            st.error(f"Error during prediction: {e}")
 
-        pdf.cell(200, 10, txt="Loan Approval Prediction Report", ln=True, align="C")
-        pdf.ln(10)
-        pdf.cell(200, 10, txt=f"Prediction: {'Approved' if prediction[0] == 0 else 'Rejected'}", ln=True)
-        pdf.cell(200, 10, txt=f"Approval Probability: {prediction_proba[0][0]:.2f}", ln=True)
-        pdf.cell(200, 10, txt=f"Rejection Probability: {prediction_proba[0][1]:.2f}", ln=True)
-        pdf.ln(10)
-        pdf.cell(200, 10, txt="Details:", ln=True)
-        pdf.ln(5)
+# Visualization: Credit Score vs Approval Probability
+st.markdown("### Credit Score vs Approval Likelihood")
+credit_scores = np.arange(300, 901, 50)
+approval_probs = [model.predict_proba([[score, 500000, 5]])[0][0] for score in credit_scores]
 
-        details = [
-            f"CIBIL Score: {cibil_score}",
-            f"Annual Income: INR {income_annum}",
-            f"Loan Amount: INR {loan_amount}",
-            f"Loan Term: {loan_term} months",
-            f"Loan Percent of Income: {loan_percent_income}%",
-            f"Number of Active Loans: {active_loans}",
-            f"Gender: {gender}",
-            f"Marital Status: {marital_status}",
-            f"Employment Status: {employee_status}",
-            f"Residence Type: {residence_type}",
-            f"Loan Purpose: {loan_purpose}",
-        ]
-        for detail in details:
-            pdf.cell(200, 10, txt=detail, ln=True)
+plt.figure(figsize=(8, 4))
+plt.plot(credit_scores, approval_probs, marker='o')
+plt.title("Credit Score vs Approval Likelihood")
+plt.xlabel("CIBIL Score")
+plt.ylabel("Approval Probability")
+plt.grid()
+st.pyplot(plt)
 
-        buffer = BytesIO()
-        pdf.output(buffer, 'S')  # Save PDF content as a string to BytesIO
-        buffer.seek(0)  # Reset the buffer pointer to the beginning
-
-        st.download_button(
-            label="Download Report as PDF",
-            data=buffer,
-            file_name="loan_prediction_report.pdf",
-            mime="application/pdf"
-        )
-    except Exception as e:
-        st.error(f"Prediction failed: {e}")
+# Expandable FAQ Section
+with st.expander("❓ Frequently Asked Questions"):
+    st.write("""
+    1. **What is a good CIBIL score?**
+       A score above 750 is considered excellent for loan approvals.
+    2. **What documents are required?**
+       ID Proof, Address Proof, Income Proof, and Loan Purpose Declaration.
+    """)
 
 # Footer
 st.markdown(
     """
     <footer>
-        <p>© 2025 AI Predictive Methods for Credit Underwriting. All rights reserved.</p>
+        <p>© 2025 AI Loan Application System. All rights reserved.</p>
     </footer>
     """,
     unsafe_allow_html=True
