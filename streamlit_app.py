@@ -6,7 +6,7 @@ from fpdf import FPDF
 
 # Set page configuration
 st.set_page_config(
-    page_title="AI Loan Approval System",
+    page_title="AI Predictive Methods for Credit Underwriting",
     page_icon="💸",
     layout="wide"
 )
@@ -50,8 +50,8 @@ st.markdown(
 st.markdown(
     """
     <div class="header-container">
-        <h1>AI Loan Approval System</h1>
-        <p>Smart, Reliable, and Transparent Loan Processing</p>
+        <h1>AI Predictive Methods for Credit Underwriting</h1>
+        <p>Revolutionizing credit underwriting with AI-driven predictive analytics for smarter, faster decisions!</p>
     </div>
     """,
     unsafe_allow_html=True
@@ -229,7 +229,7 @@ elif step == "Final Decision":
 st.markdown(
     """
     <footer>
-        <p>© 2025 AI Loan Application System. All rights reserved.</p>
+        <p>© 2025 AI Predictive Methods for Credit Underwriting. All rights reserved.</p>
     </footer>
     """,
     unsafe_allow_html=True
