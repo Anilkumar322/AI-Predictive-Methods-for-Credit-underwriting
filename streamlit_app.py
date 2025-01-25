@@ -123,7 +123,7 @@ with st.sidebar:
     marital_status = st.selectbox("Marital Status:", ["Single", "Married"], index=1)
     employee_status = st.selectbox("Employment Status:", ["employed", "self employed", "unemployed", "student"], index=0)
     residence_type = st.selectbox("Residence Type:", ["MORTGAGE", "OWN", "RENT"], index=1)
-    loan_purpose = st.selectbox("Loan Purpose:", ["Vehicle", "Personal", "Home Renovation", "Education", "Other"], index=0)
+    loan_purpose = st.selectbox("Loan Purpose:", ["Vehicle", "Personal", "Home Renovation", "Education", "Medical", "Other"], index=0)
 
 # Prepare the input data
 input_data = pd.DataFrame({
