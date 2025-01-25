@@ -177,49 +177,50 @@ if st.button("Predict Loan Status"):
                 unsafe_allow_html=True
             )
             st.success(f"Approval Probability: {prediction_proba[0][0]:.2f}")
+# Generate PDF report
+pdf = FPDF()
+pdf.add_page()
+pdf.set_font('Arial', size=12)
 
-        # Generate PDF report
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.add_font('FreeSerif', '', 'FreeSerif.ttf', uni=True)  # Register Unicode-compatible font
-        pdf.set_font('FreeSerif', size=12)
+# Add content to the PDF
+pdf.cell(200, 10, txt="Loan Approval Prediction Report", ln=True, align="C")
+pdf.ln(10)
+pdf.cell(200, 10, txt=f"Prediction: {'Approved' if prediction[0] == 0 else 'Rejected'}", ln=True)
+pdf.cell(200, 10, txt=f"Approval Probability: {prediction_proba[0][0]:.2f}", ln=True)
+pdf.cell(200, 10, txt=f"Rejection Probability: {prediction_proba[0][1]:.2f}", ln=True)
 
-        pdf.cell(200, 10, txt="Loan Approval Prediction Report", ln=True, align="C")
-        pdf.ln(10)
-        pdf.cell(200, 10, txt=f"Prediction: {status}", ln=True)
-        pdf.cell(200, 10, txt=f"Approval Probability: {prediction_proba[0][0]:.2f}", ln=True)
-        pdf.cell(200, 10, txt=f"Rejection Probability: {prediction_proba[0][1]:.2f}", ln=True)
+pdf.ln(10)
+pdf.cell(200, 10, txt="Details:", ln=True)
+pdf.ln(5)
 
-        pdf.ln(10)
-        pdf.cell(200, 10, txt="Details:", ln=True)
-        pdf.ln(5)
-        details = [
-            f"CIBIL Score: {cibil_score}",
-            f"Annual Income: INR {income_annum}",
-            f"Loan Amount: INR {loan_amount}",
-            f"Loan Term: {loan_term} months",
-            f"Loan Percent of Income: {loan_percent_income}%",
-            f"Number of Active Loans: {active_loans}",
-            f"Gender: {gender}",
-            f"Marital Status: {marital_status}",
-            f"Employment Status: {employee_status}",
-            f"Residence Type: {residence_type}",
-            f"Loan Purpose: {loan_purpose}"
-        ]
-        for detail in details:
-            pdf.cell(200, 10, txt=detail, ln=True)
+details = [
+    f"CIBIL Score: {cibil_score}",
+    f"Annual Income: INR {income_annum}",
+    f"Loan Amount: INR {loan_amount}",
+    f"Loan Term: {loan_term} months",
+    f"Loan Percent of Income: {loan_percent_income}%",
+    f"Number of Active Loans: {active_loans}",
+    f"Gender: {gender}",
+    f"Marital Status: {marital_status}",
+    f"Employment Status: {employee_status}",
+    f"Residence Type: {residence_type}",
+    f"Loan Purpose: {loan_purpose}",
+]
+for detail in details:
+    pdf.cell(200, 10, txt=detail, ln=True)
 
-        buffer = BytesIO()
-        pdf.output(buffer)
-        buffer.seek(0)
+# Write the PDF to a BytesIO object
+buffer = BytesIO()
+pdf.output(buffer)  # This writes the PDF data to the buffer
+buffer.seek(0)  # Reset the buffer's pointer to the beginning
 
-        st.download_button(
-            label="Download Report as PDF",
-            data=buffer,
-            file_name="loan_prediction_report.pdf",
-            mime="application/pdf"
-        )
-
+# Allow the user to download the PDF
+st.download_button(
+    label="Download Report as PDF",
+    data=buffer,
+    file_name="loan_prediction_report.pdf",
+    mime="application/pdf"
+)
     except Exception as e:
         st.error(f"Prediction failed: {e}")
 
