@@ -1,6 +1,6 @@
-# AI Predictive Methods for Credit underwriting
+# AI Predictive Methods for Credit Underwriting
 
-This project is a **Streamlit-based AI Predictive Methods for Credit underwriting application** that uses a machine learning model to predict whether a loan application will be approved or rejected based on user-provided inputs. The app generates a downloadable PDF report with detailed results and insights.
+This project is a **Streamlit-based AI Predictive Methods for Credit Underwriting application** that utilizes a machine learning model to predict whether a loan application will be approved or rejected based on user-provided inputs. The app generates a downloadable PDF report with detailed results and insights.
 
 ---
 
@@ -53,7 +53,7 @@ fpdf
 1. **Clone the Repository**:
    ```bash
    git clone https://github.com/Anilkumar322/AI-Predictive-Methods-for-Credit-underwriting.git
-   cd <streamlit_app.py>
+   cd AI-Predictive-Methods-for-Credit-underwriting
    ```
 
 2. **Install Dependencies**:
@@ -75,7 +75,6 @@ fpdf
 - `streamlit_app.py`: Main application file.
 - `requirements.txt`: List of required Python libraries.
 - `best_features_model.pkl`: Pre-trained machine learning model file.
-- `README.md`: Documentation file (this file).
 
 ---
 
@@ -98,14 +97,15 @@ The app provides the following input fields in the sidebar:
 ---
 
 ## Output
-- ** Streamlit Link** 🔗 https://ai-predictive-methods-for-credit-underwriting-e6mhvscqrvuabfjy.streamlit.app/
+
+- **Streamlit Link**: [Click here to access the app](https://ai-predictive-methods-for-credit-underwriting-e6mhvscqrvuabfjy.streamlit.app/)
 - **Loan Status**: Displays whether the loan is approved or rejected.
-- **Prediction Probabilities**: Displays approval and rejection probabilities.
+- **Prediction Probabilities**: Shows the probability of approval and rejection.
 - **PDF Report**: Generates a detailed downloadable PDF report containing:
   - Prediction results.
   - Input details provided by the user.
   - Summary of probabilities.
-  - 
+
 ---
 
 ## Deployment
@@ -140,12 +140,12 @@ This project is licensed under the MIT License. See the `LICENSE` file for detai
 
 ## Contributors
 
-- **Bollapalli Anil Kumar ** (Developer)
-- [GitHub Profile](https://github.com/<Anilkumar322>)
+- **Bollapalli Anil Kumar** (Developer)
+- [GitHub Profile](https://github.com/Anilkumar322)
 
 ---
 
 ## Feedback
 
-For any issues or suggestions, please open an issue on the [GitHub repository](<https://github.com/Anilkumar322/AI-Predictive-Methods-for-Credit-underwriting.git>).
+For any issues or suggestions, please open an issue on the [GitHub repository](https://github.com/Anilkumar322/AI-Predictive-Methods-for-Credit-underwriting.git).
 
