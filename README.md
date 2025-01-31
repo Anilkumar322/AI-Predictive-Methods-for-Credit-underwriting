@@ -43,7 +43,7 @@ streamlit
 pandas
 matplotlib
 joblib
-fpdf
+fpdf2
 transformers
 langdetect
 ```
@@ -105,7 +105,7 @@ The app provides the following input fields in the sidebar:
 ## Deployment
 
 The application is live and can be accessed at:
-[AI Predictive Methods for Credit Underwriting](https://ai-predictive-methods-for-credit-underwriting-62t9anqrnt4uapgg.streamlit.app/)
+[AI Predictive Methods for Credit Underwriting](https://ai-predictive-methods-for-credit-underwriting-csu8gym5fctrsyru.streamlit.app/)
 
 To deploy the app on **Streamlit Cloud**:
 
