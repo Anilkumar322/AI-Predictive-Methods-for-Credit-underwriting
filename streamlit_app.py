@@ -3,6 +3,10 @@ import pandas as pd
 import joblib
 from io import BytesIO
 from fpdf import FPDF
+import speech_recognition as sr
+from transformers import pipeline
+from langdetect import detect
+import math
 
 # Set page configuration
 st.set_page_config(
@@ -234,3 +238,139 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
+# --- Chatbot in Sidebar ---
+st.sidebar.markdown("## 🤖 AI Financial Chatbot with EMI Calculator")
+
+# Initialize chatbot session state
+if "chat_messages" not in st.session_state:
+    st.session_state["chat_messages"] = [
+        {"role": "bot", "content": "👋 Hello! You can speak or type your question.\n\n**📌 Categories:**\n- Loan Help 🏦\n- EMI Calculator 💰\n- Credit Score Info 🔍\n- Investments 📊\n- Business Loans 💼\n- Student Loans 🎓"}
+    ]
+if "last_topic" not in st.session_state:
+    st.session_state["last_topic"] = None  # Stores last discussed topic
+if "emi_active" not in st.session_state:
+    st.session_state["emi_active"] = False  # Track if EMI calculator should appear
+
+# --- EMI Calculator Function ---
+def calculate_emi(principal, rate, tenure):
+    """Calculates EMI based on principal (P), interest rate (R), and tenure (N)"""
+    rate = rate / (12 * 100)  # Convert annual interest rate to monthly
+    tenure = tenure * 12  # Convert years to months
+
+    if rate == 0:
+        emi = principal / tenure
+    else:
+        emi = (principal * rate * (1 + rate) ** tenure) / ((1 + rate) ** tenure - 1)
+    
+    return round(emi, 2)
+
+# --- Chatbot Logic with Context Awareness ---
+def chatbot_response(user_message):
+    user_message = user_message.lower()
+
+    # Category Responses
+    category_responses = {
+        "loan loans help finance": "📌 **Loan Help:**\n- **Personal Loans** 🏦\n- **Business Loans** 💼\n- **Student Loans** 🎓\n- **Home & Car Loans** 🚗🏡\n\n💡 Ask about a specific loan type for details!",
+        "emi calculator calculate loan emi monthly payment": "📊 **I can calculate your EMI!** Please enter loan amount, interest rate, and tenure below.",
+        "credit score cibil improve rating": "🔍 **Credit Score Guide:**\n- **750+** = Excellent ✅\n- **650-749** = Good 👍\n- **550-649** = Fair ⚠️\n- **Below 550** = Poor ❌\n\nHigher scores = Better loan rates!",
+        "investment options stocks real estate mutual funds": "📊 **Best Investments:**\n- 💹 **Stock Market** (High risk, high return)\n- 🏠 **Real Estate** (Long-term wealth growth)\n- 💰 **Fixed Deposits** (Safe, low return)\n- 🌱 **Mutual Funds** (Balanced growth)",
+    }
+
+    # Specific Loan Types
+    loan_details = {
+        "personal loan personal loans": "🏦 **Personal Loan Details:**\n- Loan Amount: ₹50,000 - ₹25 Lakh\n- Interest Rate: 10-15%\n- No collateral required\n- Quick approval process!",
+        "business loan startup funding company finance": "💼 **Business Loan Guide:**\n- Required: **Business plan, revenue, credit score.**\n- Interest Rates: **10-18%**\n- Collateral may be required for larger loans.",
+        "student loan education funding study abroad scholarship": "🎓 **Student Loan Guide:**\n- Covers tuition, housing, and books.\n- Lower interest rates (~5-8%).\n- Repayment starts **after graduation** in most cases.",
+    }
+
+    # Follow-up responses
+    follow_up_responses = {
+        "requirements eligibility criteria": "📌 **Loan Eligibility:**\n- **CIBIL Score:** 750+\n- **Stable Income** required\n- **Low debt-to-income ratio** preferred.",
+        "interest rate rates pricing": "💲 **Interest Rates:**\n- **Personal Loan:** 10-15%\n- **Home Loan:** 7-9%\n- **Car Loan:** 8-12%\nRates vary by credit score & bank policies.",
+        "apply process how to get": "✅ **Loan Application Process:**\n1️⃣ Choose the loan type\n2️⃣ Submit KYC & Income Proof\n3️⃣ Bank reviews eligibility\n4️⃣ Loan Approval & Disbursement.",
+    }
+
+    # Check if the user's message is about EMI (auto-trigger calculator)
+    if any(word in user_message for word in ["emi", "calculate loan", "monthly payment"]):
+        st.session_state["emi_active"] = True
+        return "📊 **EMI Calculator Activated!** Enter loan details below."
+
+    # Check if the user asked a follow-up on the last topic
+    if st.session_state["last_topic"]:
+        for key, response in follow_up_responses.items():
+            if any(word in user_message for word in key.split()):
+                return response
+    
+    # Check for category match
+    for key, response in category_responses.items():
+        if any(word in user_message for word in key.split()):
+            st.session_state["last_topic"] = user_message  # Store conversation topic
+            return response
+
+    # Check for specific loan type match
+    for key, response in loan_details.items():
+        if any(word in user_message for word in key.split()):
+            st.session_state["last_topic"] = user_message
+            return response
+
+    return "🤖 Hmm, I don't have an exact answer for that. Try asking about loans, EMI, or investments!"
+
+# --- Speech Recognition Function ---
+def recognize_speech():
+    recognizer = sr.Recognizer()
+    with sr.Microphone() as source:
+        recognizer.adjust_for_ambient_noise(source, duration=1)
+        st.sidebar.info("🎤 Listening... Speak now!")
+
+        try:
+            audio = recognizer.listen(source, timeout=10, phrase_time_limit=15)
+            text = recognizer.recognize_google(audio)  # Convert speech to text
+            st.sidebar.success(f"🗣 You said: {text}")
+            return text
+
+        except sr.WaitTimeoutError:
+            st.sidebar.error("⏳ Listening timed out. Try again.")
+        except sr.UnknownValueError:
+            st.sidebar.error("🤷 I couldn't understand. Please speak clearly.")
+        except sr.RequestError:
+            st.sidebar.error("⚠️ Speech recognition service is unavailable.")
+
+    return ""
+
+# --- Display Chat History ---
+st.sidebar.markdown("### 💬 Chat History:")
+for message in st.session_state["chat_messages"]:
+    role = "👤 You" if message["role"] == "user" else "🤖 Bot"
+    st.sidebar.markdown(f"**{role}:** {message['content']}")
+
+# --- Voice Input Button ---
+if st.sidebar.button("🎤 Speak Now"):
+    voice_text = recognize_speech()
+    if voice_text:
+        st.session_state["chat_messages"].append({"role": "user", "content": voice_text})
+        bot_reply = chatbot_response(voice_text)
+        st.session_state["chat_messages"].append({"role": "bot", "content": bot_reply})
+        st.rerun()
+
+# --- Text Input Field for Manual Chat ---
+user_input = st.sidebar.text_input("💬 Type your question:", key="chat_input")
+
+# --- Display EMI Calculator if Triggered ---
+if st.session_state["emi_active"]:
+    loan_amount = st.sidebar.number_input("Loan Amount (₹)", min_value=1000, value=500000, step=1000)
+    interest_rate = st.sidebar.number_input("Interest Rate (%)", min_value=1.0, value=10.0, step=0.1)
+    tenure = st.sidebar.number_input("Tenure (Years)", min_value=1, value=5, step=1)
+    
+    if st.sidebar.button("📊 Calculate EMI"):
+        emi_result = calculate_emi(loan_amount, interest_rate, tenure)
+        st.sidebar.success(f"📌 Your Monthly EMI: ₹{emi_result:,}")
+        st.session_state["emi_active"] = False  # Reset EMI trigger
+
+# --- Process User Input ---
+if st.sidebar.button("🚀 Send"):
+    if user_input:
+        st.session_state["chat_messages"].append({"role": "user", "content": user_input})
+        bot_reply = chatbot_response(user_input)
+        st.session_state["chat_messages"].append({"role": "bot", "content": bot_reply})
+        st.rerun()
