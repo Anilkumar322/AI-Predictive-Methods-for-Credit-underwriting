@@ -335,7 +335,7 @@ if st.sidebar.button("🚀 Send"):
         
         # Clear input field
         st.session_state["user_input"] = ""  
-        st.experimental_rerun()
+        st.rerun()
 
 # --- Display EMI Calculator if Triggered ---
 if st.session_state["emi_active"]:
