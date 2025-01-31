@@ -4,6 +4,7 @@ streamlit
 matplotlib
 speechrecognition
 transformers
+langdetect
 torch
 numpy
 seaborn
