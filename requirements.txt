@@ -2,8 +2,7 @@ pandas
 scikit-learn
 streamlit
 matplotlib
-speechrecognition
-transformers
+transformers==4.38.1
 langdetect
 torch
 numpy
