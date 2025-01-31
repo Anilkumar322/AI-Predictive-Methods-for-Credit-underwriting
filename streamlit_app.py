@@ -269,14 +269,73 @@ def chatbot_response(user_message):
         st.session_state["last_topic"] = "loan"
         return "📌 **Loan Help:**\n- **Personal Loans** 🏦\n- **Business Loans** 💼\n- **Student Loans** 🎓\n- **Home & Car Loans** 🚗🏡\n\n💡 Ask about a specific loan type for details!"
 
-    # Specific Loans
-    loan_details = {
-        "personal loan": "🏦 **Personal Loan Details:**\n- Loan Amount: ₹50,000 - ₹25 Lakh\n- Interest Rate: 10-15%\n- No collateral required\n- Quick approval process!",
-        "business loan": "💼 **Business Loan Guide:**\n- Required: **Business plan, revenue, credit score.**\n- Interest Rates: **10-18%**\n- Collateral may be required for larger loans.",
-        "student loan": "🎓 **Student Loan Guide:**\n- Covers tuition, housing, and books.\n- Lower interest rates (~5-8%).\n- Repayment starts **after graduation** in most cases.",
-        "home loan": "🏡 **Home Loan Details:**\n- Loan Amount: ₹10 Lakh - ₹1 Crore\n- Interest Rate: 7-9%\n- Collateral required (property)\n- Long-term repayment up to 30 years.",
-        "car loan": "🚗 **Car Loan Details:**\n- Loan Amount: ₹1 Lakh - ₹20 Lakh\n- Interest Rate: 8-12%\n- Repayment up to 7 years\n- No collateral required for new cars."
-    }
+    # Specific Loans with More Details
+loan_details = {
+    "personal loan": """🏦 **Personal Loan Details:**
+- **Loan Amount:** ₹50,000 - ₹25 Lakh
+- **Interest Rate:** 10-15% per annum
+- **Collateral:** ❌ Not Required
+- **Repayment Tenure:** 1-5 years
+- **Processing Time:** ✅ 24-48 hours for approval
+- **Eligibility:**
+  - CIBIL Score: **700+**
+  - Monthly Income: **₹25,000+**
+  - Age: **21-60 years**
+- **Best for:** Medical emergencies, vacations, home renovations, and debt consolidation.
+- 💡 **Tip:** Lower CIBIL scores may result in higher interest rates.""",
+
+    "business loan": """💼 **Business Loan Guide:**
+- **Loan Amount:** ₹5 Lakh - ₹5 Crore (Varies by bank)
+- **Interest Rate:** 10-18% per annum
+- **Collateral:** ✅ Required for large loans (property, assets)
+- **Repayment Tenure:** 3-10 years
+- **Processing Time:** 📅 7-15 days
+- **Eligibility:**
+  - Business Age: **2+ years**
+  - Annual Revenue: **₹10 Lakh+**
+  - Good credit history
+- **Best for:** Expanding operations, working capital, asset purchase, startup funding.
+- 💡 **Tip:** Government-backed MSME loans offer lower interest rates for small businesses.""",
+
+    "student loan": """🎓 **Student Loan Guide:**
+- **Loan Amount:** ₹1 Lakh - ₹50 Lakh
+- **Interest Rate:** 5-8% per annum (Lower for government schemes)
+- **Collateral:** ✅ Required for loans above ₹7.5 Lakh
+- **Repayment Tenure:** 10-15 years (Starts after graduation)
+- **Processing Time:** 📅 5-10 days
+- **Eligibility:**
+  - Must be admitted to a recognized institution (India or abroad)
+  - Co-applicant (Parent/Guardian) with stable income
+  - CIBIL Score: **650+**
+- **Best for:** Tuition, living expenses, and study abroad costs.
+- 💡 **Tip:** Some banks offer **0% interest grace periods** during the study period.""",
+
+    "home loan": """🏡 **Home Loan Details:**
+- **Loan Amount:** ₹10 Lakh - ₹1 Crore
+- **Interest Rate:** 7-9% per annum (Floating & Fixed rates available)
+- **Collateral:** ✅ Property being purchased serves as collateral
+- **Repayment Tenure:** 10-30 years
+- **Processing Time:** 📅 10-15 days
+- **Eligibility:**
+  - Stable income & employment history
+  - CIBIL Score: **750+**
+  - Down Payment: **20-25% of the property value**
+- **Best for:** Buying, constructing, or renovating a house.
+- 💡 **Tip:** First-time home buyers can get tax benefits under **Section 80C & 24(b).**""",
+
+    "car loan": """🚗 **Car Loan Details:**
+- **Loan Amount:** ₹1 Lakh - ₹50 Lakh
+- **Interest Rate:** 8-12% per annum
+- **Collateral:** ❌ Not Required (Car is the collateral)
+- **Repayment Tenure:** 1-7 years
+- **Processing Time:** ✅ Quick disbursal (Same-day in some banks)
+- **Eligibility:**
+  - CIBIL Score: **700+**
+  - Monthly Income: **₹20,000+**
+  - Age: **21-65 years**
+- **Best for:** New or used car purchase.
+- 💡 **Tip:** Special **low-interest loans available for Electric Vehicles (EVs).**""",
+}
 
     # Check for a specific loan type
     for key, response in loan_details.items():
