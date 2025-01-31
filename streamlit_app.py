@@ -3,7 +3,6 @@ import pandas as pd
 import joblib
 from io import BytesIO
 from fpdf import FPDF
-import speech_recognition as sr
 from transformers import pipeline
 from langdetect import detect
 import math
@@ -243,7 +242,7 @@ st.markdown(
 # --- Chatbot in Sidebar ---
 st.sidebar.markdown("## 🤖 AI Financial Chatbot with EMI Calculator")
 
-# --- Initialize Chat History ---
+# --- Initialize Chat History & Session Variables ---
 if "chat_messages" not in st.session_state:
     st.session_state["chat_messages"] = [
         {"role": "bot", "content": "👋 Hello! You can speak or type your question.\n\n**📌 Categories:**\n- Loan Help 🏦\n- EMI Calculator 💰\n- Credit Score Info 🔍\n- Investments 📊\n- Business Loans 💼\n- Student Loans 🎓"}
@@ -278,27 +277,27 @@ def chatbot_response(user_message):
         "home loan": "🏡 **Home Loan Details:**\n- Loan Amount: ₹10 Lakh - ₹1 Crore\n- Interest Rate: 7-9%\n- Collateral required (property)\n- Long-term repayment up to 30 years.",
         "car loan": "🚗 **Car Loan Details:**\n- Loan Amount: ₹1 Lakh - ₹20 Lakh\n- Interest Rate: 8-12%\n- Repayment up to 7 years\n- No collateral required for new cars."
     }
+
+    # Check for a specific loan type
     for key, response in loan_details.items():
         if key in user_message:
-            st.session_state["last_topic"] = key
+            st.session_state["last_topic"] = key  # Store last topic
             return response
 
-    # Follow-Up Questions
+    # Follow-Up Questions Based on Last Topic
     if st.session_state["last_topic"]:
-        if "requirements" in user_message or "eligibility" in user_message:
-            return "📌 **Loan Eligibility:**\n- **CIBIL Score:** 750+\n- **Stable Income** required\n- **Low debt-to-income ratio** preferred."
-        elif "interest rate" in user_message or "rates" in user_message:
-            return "💲 **Interest Rates:**\n- **Personal Loan:** 10-15%\n- **Home Loan:** 7-9%\n- **Car Loan:** 8-12%\nRates vary by credit score & bank policies."
-        elif "apply" in user_message or "process" in user_message:
-            return "✅ **Loan Application Process:**\n1️⃣ Choose the loan type\n2️⃣ Submit KYC & Income Proof\n3️⃣ Bank reviews eligibility\n4️⃣ Loan Approval & Disbursement."
-        elif "tell me more" in user_message:
-            # Give more information based on the last topic
-            if st.session_state["last_topic"] == "business loan":
-                return "💼 **Business Loan Details (More Info):**\n- You may need collateral for large loans.\n- Business loans are ideal for expanding operations, purchasing equipment, or funding new projects."
+        if "tell me more" in user_message or "more details" in user_message:
+            # Provide additional details based on the last topic
+            if st.session_state["last_topic"] == "personal loan":
+                return "🏦 **More on Personal Loans:**\n- Great for emergencies, vacations, or home improvements.\n- Processing time: **24-48 hours** in most banks.\n- No specific usage restrictions."
+            elif st.session_state["last_topic"] == "business loan":
+                return "💼 **More on Business Loans:**\n- Best for expansion, working capital, and asset purchase.\n- Some banks offer **low-interest startup loans**."
             elif st.session_state["last_topic"] == "student loan":
-                return "🎓 **Student Loan Details (More Info):**\n- Repayment typically starts 6 months after graduation.\n- Some banks offer flexible repayment plans for students facing financial difficulties."
-            elif st.session_state["last_topic"] == "personal loan":
-                return "🏦 **Personal Loan Details (More Info):**\n- Personal loans can be used for various needs like medical emergencies, vacations, or consolidating debt.\n- No specific collateral is required."
+                return "🎓 **More on Student Loans:**\n- Government banks offer **subsidized loans** for students from low-income families.\n- Some banks provide a **grace period** after graduation."
+            elif st.session_state["last_topic"] == "home loan":
+                return "🏡 **More on Home Loans:**\n- You can apply for **tax benefits** under Section 80C.\n- Banks often offer **fixed or floating interest rates**."
+            elif st.session_state["last_topic"] == "car loan":
+                return "🚗 **More on Car Loans:**\n- Special interest rates available for **electric vehicles (EVs)**.\n- Some banks offer **100% on-road financing** for new cars."
 
     # EMI Calculator Activation
     emi_keywords = ["emi", "monthly payment", "calculate emi"]
@@ -310,10 +309,6 @@ def chatbot_response(user_message):
     if "credit score" in user_message or "cibil" in user_message:
         return "🔍 **Credit Score Guide:**\n- **750+** = Excellent ✅\n- **650-749** = Good 👍\n- **550-649** = Fair ⚠️\n- **Below 550** = Poor ❌\n\nHigher scores = Better loan rates!"
 
-    # Investment Options
-    if "investment" in user_message or "stocks" in user_message:
-        return "📊 **Best Investments:**\n- 💹 **Stock Market** (High risk, high return)\n- 🏠 **Real Estate** (Long-term growth)\n- 💰 **Fixed Deposits** (Safe, low return)\n- 🌱 **Mutual Funds** (Balanced growth)"
-
     # Default Response
     return "🤖 Hmm, I don't have an exact answer for that. Try asking about loans, EMI, or investments!"
 
@@ -324,17 +319,22 @@ for message in st.session_state["chat_messages"]:
     st.sidebar.markdown(f"**{role}:** {message['content']}")
 
 # --- Text Input Field for Manual Chat ---
-user_input = st.sidebar.text_input("💬 Type your question:", key="chat_input")
+user_input = st.sidebar.text_input("💬 Type your question:", value=st.session_state["user_input"], key="chat_input")
 
 # --- Process User Input ---
 if st.sidebar.button("🚀 Send"):
-    if user_input:
+    if user_input.strip():
+        # Add user input to chat history
         st.session_state["chat_messages"].append({"role": "user", "content": user_input})
+        
+        # Get bot response
         bot_reply = chatbot_response(user_input)
         st.session_state["chat_messages"].append({"role": "bot", "content": bot_reply})
         
-        # Clear input field
+        # Clear input field by resetting session state
         st.session_state["user_input"] = ""  
+        
+        # Refresh UI to show cleared input field
         st.rerun()
 
 # --- Display EMI Calculator if Triggered ---
