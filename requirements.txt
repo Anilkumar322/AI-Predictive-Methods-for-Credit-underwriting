@@ -3,6 +3,8 @@ scikit-learn
 streamlit
 matplotlib
 speechrecognition
+transformers
+torch
 numpy
 seaborn
 joblib
