@@ -7,6 +7,7 @@ import speech_recognition as sr
 from transformers import pipeline
 from langdetect import detect
 import math
+import os
 
 # Set page configuration
 st.set_page_config(
