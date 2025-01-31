@@ -316,25 +316,33 @@ def chatbot_response(user_message):
 
     return "🤖 Hmm, I don't have an exact answer for that. Try asking about loans, EMI, or investments!"
 
-# --- Speech Recognition Function ---
 def recognize_speech():
-    recognizer = sr.Recognizer()
-    with sr.Microphone() as source:
-        recognizer.adjust_for_ambient_noise(source, duration=1)
-        st.sidebar.info("🎤 Listening... Speak now!")
+    """Handles speech recognition and checks for PyAudio errors"""
+    
+    # If running on Streamlit Cloud, disable speech recognition
+    if "STREAMLIT_SERVER_PORT" in os.environ:
+        st.sidebar.error("🎤 Voice input is not supported on Streamlit Cloud.")
+        return ""
 
-        try:
+    recognizer = sr.Recognizer()
+    
+    try:
+        with sr.Microphone() as source:
+            recognizer.adjust_for_ambient_noise(source, duration=1)
+            st.sidebar.info("🎤 Listening... Speak now!")
             audio = recognizer.listen(source, timeout=10, phrase_time_limit=15)
-            text = recognizer.recognize_google(audio)  # Convert speech to text
+            text = recognizer.recognize_google(audio)
             st.sidebar.success(f"🗣 You said: {text}")
             return text
 
-        except sr.WaitTimeoutError:
-            st.sidebar.error("⏳ Listening timed out. Try again.")
-        except sr.UnknownValueError:
-            st.sidebar.error("🤷 I couldn't understand. Please speak clearly.")
-        except sr.RequestError:
-            st.sidebar.error("⚠️ Speech recognition service is unavailable.")
+    except AttributeError:
+        st.sidebar.error("⚠️ PyAudio is missing. Install it locally for voice input.")
+    except sr.WaitTimeoutError:
+        st.sidebar.error("⏳ Listening timed out. Try again.")
+    except sr.UnknownValueError:
+        st.sidebar.error("🤷 I couldn't understand. Please speak clearly.")
+    except sr.RequestError:
+        st.sidebar.error("⚠️ Speech recognition service is unavailable.")
 
     return ""
 
