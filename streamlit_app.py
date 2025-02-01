@@ -63,16 +63,18 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Load the trained model
-model_path = 'best_features_model.pkl'
-try:
-    model = joblib.load(model_path)
-    st.success("✅ Model loaded successfully!")
-except FileNotFoundError:
-    st.error(f"❌ Model file not found: {model_path}")
-    model = None  # Allow app to run without crashing
+import streamlit as st
+import joblib
+import pandas as pd
+import re
+from io import BytesIO
+from fpdf import FPDF
 
-# Initialize session state
+# Load the trained ML model
+model_path = 'best_features_model.pkl'
+model = joblib.load(model_path)
+
+# Initialize session state variables
 if "loan_details" not in st.session_state:
     st.session_state["loan_details"] = {
         "full_name": "",
@@ -103,14 +105,12 @@ def next_step():
     current_index = steps.index(st.session_state["current_step"])
     if current_index < len(steps) - 1:
         st.session_state["current_step"] = steps[current_index + 1]
-        st.rerun()
 
 def prev_step():
     steps = ["Personal Information", "Loan Details", "Upload Documents", "Final Decision"]
     current_index = steps.index(st.session_state["current_step"])
     if current_index > 0:
         st.session_state["current_step"] = steps[current_index - 1]
-        st.rerun()
 
 # Display the current step title
 st.markdown(f"## {st.session_state['current_step']}")
@@ -119,8 +119,6 @@ st.markdown(f"## {st.session_state['current_step']}")
 # STEP 1: PERSONAL INFORMATION
 # -------------------------
 if st.session_state["current_step"] == "Personal Information":
-    st.markdown("### Step 1: Personal Information")
-
     full_name = st.text_input("Full Name", st.session_state["loan_details"]["full_name"])
     if full_name and not re.match(r"^[A-Za-z\s]+$", full_name):
         st.warning("⚠️ Please enter a valid name (only letters and spaces).")
@@ -145,7 +143,6 @@ if st.session_state["current_step"] == "Personal Information":
 # STEP 2: LOAN DETAILS
 # -------------------------
 elif st.session_state["current_step"] == "Loan Details":
-    st.markdown("### Step 2: Loan Details")
 
     st.session_state["loan_details"]["cibil_score"] = st.slider("CIBIL Score (300-900):", 300, 900, st.session_state["loan_details"]["cibil_score"])
     st.session_state["loan_details"]["income_annum"] = st.number_input("Annual Income (INR):", min_value=0, step=10000, value=st.session_state["loan_details"]["income_annum"])
@@ -158,20 +155,20 @@ elif st.session_state["current_step"] == "Loan Details":
     st.session_state["loan_details"]["residence_type"] = st.selectbox("Residence Type:", ["MORTGAGE", "OWN", "RENT"], index=["MORTGAGE", "OWN", "RENT"].index(st.session_state["loan_details"]["residence_type"]))
     st.session_state["loan_details"]["loan_purpose"] = st.selectbox("Loan Purpose:", ["Vehicle", "Personal", "Home Renovation", "Education", "Medical", "Other"], index=["Vehicle", "Personal", "Home Renovation", "Education", "Medical", "Other"].index(st.session_state["loan_details"]["loan_purpose"]))
     
-    #EMI Calculator
+    
+    # EMI Calculator
     st.markdown("### Loan EMI Calculator")
     loan_amount = st.session_state["loan_details"]["loan_amount"]
     loan_term_years = st.session_state["loan_details"]["loan_term"] / 12
     interest_rate = st.number_input("Interest Rate (%):", min_value=0.1, max_value=15.0, step=0.1, value=7.5)
+    
     monthly_rate = interest_rate / (12 * 100)
     tenure_months = loan_term_years * 12
+    
     if loan_amount > 0 and tenure_months > 0:
         emi = (loan_amount * monthly_rate * (1 + monthly_rate) ** tenure_months) / ((1 + monthly_rate) ** tenure_months - 1)
         st.session_state["loan_details"]["emi"] = emi
         st.write(f"**Estimated EMI:** ₹{emi:,.2f}")
-    else:
-        st.session_state["loan_details"]["emi"] = None
-        st.write("Please provide valid loan amount and term.")
 
     col1, col2 = st.columns(2)
     with col1:
@@ -183,10 +180,13 @@ elif st.session_state["current_step"] == "Loan Details":
 # STEP 3: UPLOAD DOCUMENTS
 # -------------------------
 elif st.session_state["current_step"] == "Upload Documents":
-    st.markdown("### Step 3: Upload Documents")
+    uploaded_id = st.file_uploader("Upload ID Proof")
+    if uploaded_id is not None:
+        st.session_state["loan_details"]["id_proof"] = uploaded_id
 
-    st.session_state["loan_details"]["id_proof"] = st.file_uploader("Upload ID Proof")
-    st.session_state["loan_details"]["address_proof"] = st.file_uploader("Upload Address Proof")
+    uploaded_address = st.file_uploader("Upload Address Proof")
+    if uploaded_address is not None:
+        st.session_state["loan_details"]["address_proof"] = uploaded_address
 
     col1, col2 = st.columns(2)
     with col1:
@@ -195,10 +195,9 @@ elif st.session_state["current_step"] == "Upload Documents":
         st.button("Next", on_click=next_step)
 
 # -------------------------
-# STEP 4: FINAL DECISION (WITH PDF DOWNLOAD)
+# STEP 4: FINAL DECISION
 # -------------------------
 elif st.session_state["current_step"] == "Final Decision":
-    st.markdown("### Step 4: Final Decision")
     loan_details = st.session_state["loan_details"]
 
     # Prepare input data for prediction
@@ -221,10 +220,10 @@ elif st.session_state["current_step"] == "Final Decision":
         "loan_purpose_Education": [1 if loan_details["loan_purpose"] == "Education" else 0],
         "loan_purpose_Vehicle": [1 if loan_details["loan_purpose"] == "Vehicle" else 0],
     })
-
+    
     input_data = input_data.reindex(columns=model.feature_names_in_, fill_value=0)
 
-    # Prediction
+    #prediction
     try:
         prediction = model.predict(input_data)
         prediction_proba = model.predict_proba(input_data)
@@ -236,70 +235,60 @@ elif st.session_state["current_step"] == "Final Decision":
             st.markdown("### Loan Approved ✅")
             st.success(f"Approval Probability: {prediction_proba[0][0]:.2f}")
 
-            # -----------------
-            # PDF GENERATION
-            # -----------------
-            # Generate PDF Report
-            pdf = FPDF()
-            pdf.add_page()
-            pdf.add_font('FreeSerif', '', 'FreeSerif.ttf', uni=True)
-            pdf.set_font("FreeSerif", size=12)
+        # -----------------
+        # PDF GENERATION
+        # -----------------
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.add_font('FreeSerif', '', 'FreeSerif.ttf', uni=True)
+        pdf.set_font("FreeSerif", size=12)
 
-            pdf.cell(200, 10, txt="Loan Approval Prediction Report", ln=True, align="C")
-            pdf.ln(10)
+        pdf.cell(200, 10, txt="Loan Approval Prediction Report", ln=True, align="C")
+        pdf.ln(10)
 
-            # Personal Information
-            pdf.cell(200, 10, txt="Personal Information:", ln=True)
-            pdf.cell(200, 10, txt=f"Full Name: {loan_details.get('full_name', 'N/A')}", ln=True)
-            pdf.cell(200, 10, txt=f"Email: {loan_details.get('email', 'N/A')}", ln=True)
-            pdf.cell(200, 10, txt=f"Phone: {loan_details.get('phone', 'N/A')}", ln=True)
-            pdf.ln(10)
+        # Personal Information
+        pdf.cell(200, 10, txt="Personal Information:", ln=True)
+        pdf.cell(200, 10, txt=f"Full Name: {loan_details.get('full_name', 'N/A')}", ln=True)
+        pdf.cell(200, 10, txt=f"Email: {loan_details.get('email', 'N/A')}", ln=True)
+        pdf.cell(200, 10, txt=f"Phone: {loan_details.get('phone', 'N/A')}", ln=True)
+        pdf.ln(10)
 
-            # Loan Details
-            pdf.cell(200, 10, txt="Loan Details:", ln=True)
-            pdf.cell(200, 10, txt=f"CIBIL Score: {loan_details.get('cibil_score', 'N/A')}", ln=True)
-            pdf.cell(200, 10, txt=f"Loan Amount: ₹{loan_details.get('loan_amount', 'N/A')}", ln=True)
-            pdf.cell(200, 10, txt=f"Loan Term: {loan_details.get('loan_term', 'N/A')} months", ln=True)
-            emi_value = loan_details.get("emi", None)
-            if emi_value is not None:
-                pdf.cell(200, 10, txt=f"Estimated EMI: ₹{emi_value:,.2f}", ln=True)
-            else:
-                pdf.cell(200, 10, txt="Estimated EMI: Not Calculated", ln=True)
-            pdf.ln(10)
+        # Loan Details
+        pdf.cell(200, 10, txt="Loan Details:", ln=True)
+        pdf.cell(200, 10, txt=f"CIBIL Score: {loan_details.get('cibil_score', 'N/A')}", ln=True)
+        pdf.cell(200, 10, txt=f"Loan Amount: ₹{loan_details.get('loan_amount', 'N/A')}", ln=True)
+        pdf.cell(200, 10, txt=f"Loan Term: {loan_details.get('loan_term', 'N/A')} months", ln=True)
+        emi_value = loan_details.get("emi", None)
+        if emi_value is not None:
+            pdf.cell(200, 10, txt=f"Estimated EMI: ₹{emi_value:,.2f}", ln=True)
+        else:
+            pdf.cell(200, 10, txt="Estimated EMI: Not Calculated", ln=True)
+        pdf.ln(10)
 
-            # Prediction Results
-            pdf.cell(200, 10, txt="Prediction Results:", ln=True)
-            pdf.cell(200, 10, txt=f"Prediction: {'Approved' if prediction[0] == 0 else 'Rejected'}", ln=True)
-            pdf.cell(200, 10, txt=f"Approval Probability: {prediction_proba[0][0]:.2f}", ln=True)
-            pdf.cell(200, 10, txt=f"Rejection Probability: {prediction_proba[0][1]:.2f}", ln=True)
-            pdf.ln(10)
+        # Prediction Results
+        pdf.cell(200, 10, txt="Prediction Results:", ln=True)
+        pdf.cell(200, 10, txt=f"Prediction: {'Approved' if prediction[0] == 0 else 'Rejected'}", ln=True)
+        pdf.cell(200, 10, txt=f"Approval Probability: {prediction_proba[0][0]:.2f}", ln=True)
+        pdf.cell(200, 10, txt=f"Rejection Probability: {prediction_proba[0][1]:.2f}", ln=True)
+        pdf.ln(10)
 
-            # Save PDF to buffer
-            buffer = BytesIO()
-            pdf.output(buffer, "S")
-            buffer.seek(0)
+        # Save PDF to buffer
+        buffer = BytesIO()
+        pdf.output(buffer, "S")
+        buffer.seek(0)
 
-            st.download_button(
-            label="Download Report as PDF",
-            data=buffer,
-            file_name="loan_prediction_report.pdf",
-            mime="application/pdf"
-        )
+        st.download_button(
+        label="Download Report as PDF",
+        data=buffer,
+        file_name="loan_prediction_report.pdf",
+        mime="application/pdf"
+    )
 
     except Exception as e:
         st.error(f"Prediction failed: {e}")
 
     st.button("Previous", on_click=prev_step)
 
-# Footer
-st.markdown(
-    """
-    <footer>
-        <p>© 2025 AI Predictive Methods for Credit Underwriting. All rights reserved.</p>
-    </footer>
-    """,
-    unsafe_allow_html=True
-)
 # --- Sidebar Chatbot Header ---
 st.sidebar.markdown("## 🤖 AI Financial Chatbot")
 
@@ -422,3 +411,13 @@ if st.sidebar.button("🗑️ Clear Chat History"):
     st.session_state["chat_messages"] = []
     st.session_state["last_topic"] = None
     st.rerun()
+
+# Footer
+st.markdown(
+    """
+    <footer>
+        <p>© 2025 AI Predictive Methods for Credit Underwriting. All rights reserved.</p>
+    </footer>
+    """,
+    unsafe_allow_html=True
+)
