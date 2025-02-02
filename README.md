@@ -85,7 +85,6 @@ The app provides the following input fields in the sidebar:
 - **Annual Income** (INR)
 - **Loan Amount** (INR)
 - **Loan Term** (months)
-- **Loan Percent of Income** (%)
 - **Number of Active Loans**
 - **Gender**
 - **Marital Status**
