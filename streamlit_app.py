@@ -63,13 +63,6 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-import streamlit as st
-import joblib
-import pandas as pd
-import re
-from io import BytesIO
-from fpdf import FPDF
-
 # Load the trained ML model
 model_path = 'best_features_model.pkl'
 model = joblib.load(model_path)
